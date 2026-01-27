@@ -1,0 +1,16 @@
+{
+  "name": "webunlock1.0",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "express": "^4.22.1",
+    "puppeteer": "^24.36.0"
+  }
+}

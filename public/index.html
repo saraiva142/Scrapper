@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WebUnlock – Transforme páginas em JSON</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="header">
+        <h1>WebUnlock</h1>
+        <p>Transforme elementos de qualquer página web em uma API JSON.</p>
+      </header>
+
+      <main class="card">
+        <form id="scrape-form" class="form">
+          <div class="field">
+            <label for="url">URL da página</label>
+            <input
+              type="url"
+              id="url"
+              name="url"
+              placeholder="https://exemplo.com"
+              required
+            />
+          </div>
+
+          <div class="field">
+            <label for="selector">Seletor CSS do elemento</label>
+            <input
+              type="text"
+              id="selector"
+              name="selector"
+              placeholder="Ex.: h1, .titulo, #preco"
+              required
+            />
+          </div>
+
+          <button type="submit" id="submit-btn">Executar scrape</button>
+        </form>
+
+        <section class="result-section">
+          <div class="result-header">
+            <h2>Resultado (JSON)</h2>
+            <button id="copy-btn" type="button">Copiar</button>
+          </div>
+          <pre id="result" class="result-output">
+{
+  "aguardando": true
+}
+          </pre>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <span>MVP WebUnlock – Scraping como serviço</span>
+      </footer>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+  </html>
+
