@@ -34,7 +34,7 @@ body {
 
 .app {
   width: 100%;
-  max-width: 960px;
+  max-width: 1200px;
 }
 
 .header {
@@ -53,6 +53,50 @@ body {
   margin: 0;
   color: var(--text-secondary);
   font-size: 0.98rem;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.tab-btn {
+  border: none;
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  background: rgba(15, 23, 42, 0.6);
+  color: var(--text-secondary);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  transition: all var(--transition-fast);
+}
+
+.tab-btn:hover {
+  background: rgba(15, 23, 42, 0.85);
+  color: var(--text-primary);
+  border-color: rgba(148, 163, 184, 0.4);
+}
+
+.tab-btn.active {
+  background: linear-gradient(135deg, #22c55e, #4ade80);
+  color: #04101a;
+  border-color: transparent;
+  box-shadow: 0 8px 20px rgba(34, 197, 94, 0.3);
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
 }
 
 .card {
@@ -85,6 +129,12 @@ body {
   gap: 6px;
 }
 
+.field-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
 .field label {
   font-size: 0.85rem;
   text-transform: uppercase;
@@ -92,7 +142,9 @@ body {
   color: var(--text-secondary);
 }
 
-.field input {
+.field input,
+.field textarea,
+.field select {
   border-radius: 999px;
   border: 1px solid var(--border-subtle);
   padding: 10px 14px;
@@ -102,20 +154,41 @@ body {
   outline: none;
   transition: border-color var(--transition-fast),
     box-shadow var(--transition-fast), background var(--transition-fast);
+  font-family: var(--font-sans);
 }
 
-.field input::placeholder {
+.field textarea {
+  border-radius: 12px;
+  resize: vertical;
+  min-height: 80px;
+}
+
+.field select {
+  cursor: pointer;
+}
+
+.field input::placeholder,
+.field textarea::placeholder {
   color: rgba(148, 163, 184, 0.7);
 }
 
-.field input:focus {
+.field input:focus,
+.field textarea:focus,
+.field select:focus {
   border-color: rgba(34, 197, 94, 0.9);
   box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.9),
     0 12px 30px rgba(34, 197, 94, 0.25);
   background: #020617;
 }
 
-button#submit-btn {
+.field label input[type="checkbox"] {
+  width: auto;
+  margin-right: 8px;
+  cursor: pointer;
+}
+
+button[type="submit"],
+button.submit-btn {
   margin-top: 4px;
   border: none;
   border-radius: 999px;
@@ -136,18 +209,21 @@ button#submit-btn {
     box-shadow var(--transition-fast), filter var(--transition-fast);
 }
 
-button#submit-btn:hover:not(:disabled) {
+button[type="submit"]:hover:not(:disabled),
+button.submit-btn:hover:not(:disabled) {
   transform: translateY(-1px);
   box-shadow: 0 18px 40px rgba(34, 197, 94, 0.45);
   filter: saturate(1.1);
 }
 
-button#submit-btn:active:not(:disabled) {
+button[type="submit"]:active:not(:disabled),
+button.submit-btn:active:not(:disabled) {
   transform: translateY(0);
   box-shadow: 0 8px 18px rgba(34, 197, 94, 0.32);
 }
 
-button#submit-btn:disabled {
+button[type="submit"]:disabled,
+button.submit-btn:disabled {
   opacity: 0.6;
   cursor: default;
   box-shadow: none;
@@ -168,6 +244,7 @@ button#submit-btn:disabled {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .result-header h2 {
@@ -178,7 +255,14 @@ button#submit-btn:disabled {
   margin: 0;
 }
 
-button#copy-btn {
+.result-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+button#copy-btn,
+button.export-btn {
   border-radius: 999px;
   border: 1px solid rgba(148, 163, 184, 0.6);
   padding: 6px 12px;
@@ -192,11 +276,29 @@ button#copy-btn {
     color var(--transition-fast), transform var(--transition-fast);
 }
 
-button#copy-btn:hover {
+button#copy-btn:hover,
+button.export-btn:hover {
   background: rgba(15, 23, 42, 0.85);
   border-color: rgba(148, 163, 184, 0.9);
   color: var(--text-primary);
   transform: translateY(-0.5px);
+}
+
+.stats {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  padding: 6px 8px;
+  background: rgba(15, 23, 42, 0.5);
+  border-radius: 8px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.stats span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .result-output {
@@ -209,13 +311,66 @@ button#copy-btn:hover {
     'Courier New', monospace;
   font-size: 0.86rem;
   color: var(--text-primary);
-  max-height: 260px;
+  max-height: 400px;
   overflow: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 
 .result-output.error {
   border-color: rgba(248, 113, 113, 0.8);
   background: radial-gradient(circle at top left, #450a0a 0, #020617 55%);
+}
+
+.screenshot-preview {
+  margin-top: 10px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.screenshot-preview img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Loading Overlay */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(5, 8, 22, 0.95);
+  backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  z-index: 9999;
+}
+
+.loading-overlay p {
+  color: var(--text-primary);
+  font-size: 1rem;
+  margin: 0;
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(34, 197, 94, 0.2);
+  border-top-color: #22c55e;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .footer {
@@ -225,4 +380,3 @@ button#copy-btn:hover {
   color: var(--text-secondary);
   opacity: 0.8;
 }
-

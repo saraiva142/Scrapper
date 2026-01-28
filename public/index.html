@@ -13,43 +13,239 @@
         <p>Transforme elementos de qualquer página web em uma API JSON.</p>
       </header>
 
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="simple">Simples</button>
+        <button class="tab-btn" data-tab="table">Tabela</button>
+        <button class="tab-btn" data-tab="advanced">Avançado</button>
+        <button class="tab-btn" data-tab="screenshot">Screenshot</button>
+      </div>
+
       <main class="card">
-        <form id="scrape-form" class="form">
-          <div class="field">
-            <label for="url">URL da página</label>
-            <input
-              type="url"
-              id="url"
-              name="url"
-              placeholder="https://exemplo.com"
-              required
-            />
-          </div>
+        <!-- Aba Simples -->
+        <div class="tab-content active" id="tab-simple">
+          <form id="scrape-form" class="form">
+            <div class="field">
+              <label for="url">URL da página</label>
+              <input
+                type="url"
+                id="url"
+                name="url"
+                placeholder="https://exemplo.com"
+                required
+              />
+            </div>
 
-          <div class="field">
-            <label for="selector">Seletor CSS do elemento</label>
-            <input
-              type="text"
-              id="selector"
-              name="selector"
-              placeholder="Ex.: h1, .titulo, #preco"
-              required
-            />
-          </div>
+            <div class="field">
+              <label for="selector">Seletor CSS (ou múltiplos separados por vírgula)</label>
+              <input
+                type="text"
+                id="selector"
+                name="selector"
+                placeholder="Ex.: h1, .titulo, #preco"
+                required
+              />
+            </div>
 
-          <button type="submit" id="submit-btn">Executar scrape</button>
-        </form>
+            <button type="submit" id="submit-btn">Executar scrape</button>
+          </form>
+        </div>
 
+        <!-- Aba Tabela -->
+        <div class="tab-content" id="tab-table">
+          <form id="table-form" class="form">
+            <div class="field">
+              <label for="table-url">URL da página</label>
+              <input
+                type="url"
+                id="table-url"
+                name="url"
+                placeholder="https://exemplo.com"
+                required
+              />
+            </div>
+
+            <div class="field">
+              <label for="table-selector">Seletor da tabela</label>
+              <input
+                type="text"
+                id="table-selector"
+                name="tableSelector"
+                placeholder="Ex.: table, .data-table, #results"
+                required
+              />
+            </div>
+
+            <button type="submit" id="table-submit-btn">Executar scrape de tabela</button>
+          </form>
+        </div>
+
+        <!-- Aba Avançado -->
+        <div class="tab-content" id="tab-advanced">
+          <form id="advanced-form" class="form">
+            <div class="field">
+              <label for="adv-url">URL da página</label>
+              <input
+                type="url"
+                id="adv-url"
+                name="url"
+                placeholder="https://exemplo.com"
+                required
+              />
+            </div>
+
+            <div class="field">
+              <label for="adv-selectors">Seletores (um por linha ou separados por vírgula)</label>
+              <textarea
+                id="adv-selectors"
+                name="selectors"
+                rows="4"
+                placeholder="h1&#10;.titulo&#10;#preco"
+                required
+              ></textarea>
+            </div>
+
+            <div class="field-group">
+              <div class="field">
+                <label for="timeout">Timeout (ms)</label>
+                <input
+                  type="number"
+                  id="timeout"
+                  name="timeout"
+                  placeholder="10000"
+                  value="10000"
+                />
+              </div>
+
+              <div class="field">
+                <label for="waitUntil">Wait Until</label>
+                <select id="waitUntil" name="waitUntil">
+                  <option value="domcontentloaded">domcontentloaded</option>
+                  <option value="load">load</option>
+                  <option value="networkidle0">networkidle0</option>
+                  <option value="networkidle2">networkidle2</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="userAgent">User Agent (opcional)</label>
+              <input
+                type="text"
+                id="userAgent"
+                name="userAgent"
+                placeholder="Deixe vazio para padrão"
+              />
+            </div>
+
+            <div class="field-group">
+              <div class="field">
+                <label for="viewport-width">Viewport Width</label>
+                <input
+                  type="number"
+                  id="viewport-width"
+                  name="viewportWidth"
+                  placeholder="1920"
+                  value="1920"
+                />
+              </div>
+
+              <div class="field">
+                <label for="viewport-height">Viewport Height</label>
+                <input
+                  type="number"
+                  id="viewport-height"
+                  name="viewportHeight"
+                  placeholder="1080"
+                  value="1080"
+                />
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="retries">Tentativas em caso de falha</label>
+              <input
+                type="number"
+                id="retries"
+                name="retries"
+                placeholder="0"
+                value="0"
+                min="0"
+                max="5"
+              />
+            </div>
+
+            <button type="submit" id="advanced-submit-btn">Executar scrape avançado</button>
+          </form>
+        </div>
+
+        <!-- Aba Screenshot -->
+        <div class="tab-content" id="tab-screenshot">
+          <form id="screenshot-form" class="form">
+            <div class="field">
+              <label for="screenshot-url">URL da página</label>
+              <input
+                type="url"
+                id="screenshot-url"
+                name="url"
+                placeholder="https://exemplo.com"
+                required
+              />
+            </div>
+
+            <div class="field-group">
+              <div class="field">
+                <label for="screenshot-width">Largura</label>
+                <input
+                  type="number"
+                  id="screenshot-width"
+                  name="width"
+                  placeholder="1920"
+                  value="1920"
+                />
+              </div>
+
+              <div class="field">
+                <label for="screenshot-height">Altura</label>
+                <input
+                  type="number"
+                  id="screenshot-height"
+                  name="height"
+                  placeholder="1080"
+                  value="1080"
+                />
+              </div>
+            </div>
+
+            <div class="field">
+              <label>
+                <input type="checkbox" id="full-page" name="fullPage" />
+                Capturar página completa
+              </label>
+            </div>
+
+            <button type="submit" id="screenshot-submit-btn">Capturar screenshot</button>
+          </form>
+        </div>
+
+        <!-- Resultado -->
         <section class="result-section">
           <div class="result-header">
             <h2>Resultado (JSON)</h2>
-            <button id="copy-btn" type="button">Copiar</button>
+            <div class="result-actions">
+              <button id="export-csv-btn" type="button" class="export-btn">CSV</button>
+              <button id="export-json-btn" type="button" class="export-btn">JSON</button>
+              <button id="copy-btn" type="button">Copiar</button>
+            </div>
           </div>
+          <div id="stats" class="stats"></div>
           <pre id="result" class="result-output">
 {
   "aguardando": true
 }
           </pre>
+          <div id="screenshot-preview" class="screenshot-preview" style="display: none;">
+            <img id="screenshot-img" alt="Screenshot" />
+          </div>
         </section>
       </main>
 
@@ -58,7 +254,12 @@
       </footer>
     </div>
 
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+      <div class="spinner"></div>
+      <p>Processando...</p>
+    </div>
+
     <script src="app.js"></script>
   </body>
-  </html>
-
+</html>
