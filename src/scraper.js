@@ -48,7 +48,7 @@ function extractAttributes(element) {
 async function scrapeElements(url, selector, options = {}) {
   const {
     timeout = 10000,
-    waitUntil = 'domcontentloaded',
+    waitUntil = 'load', // Mudado de 'domcontentloaded' para 'load' para garantir que recursos carregaram
     userAgent,
     viewport,
     retries = 0,
@@ -82,62 +82,104 @@ async function scrapeElements(url, selector, options = {}) {
         await page.setViewport(viewport);
       }
 
-      await page.goto(url, { waitUntil });
+      await page.goto(url, { waitUntil, timeout: timeout + 5000 });
 
-      // Aguarda pelo menos um seletor aparecer
-      await Promise.race(
-        selectors.map(sel => page.waitForSelector(sel, { timeout }).catch(() => null))
-      );
+      // Aguarda um pouco para garantir que JavaScript tenha executado e elementos dinâmicos carregaram
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
       const results = {};
 
       for (const sel of selectors) {
-        const data = await page.evaluate((sel, extractAttrs) => {
-          const elements = document.querySelectorAll(sel);
-          if (elements.length === 0) return [];
-
-          return Array.from(elements).map(el => {
-            const inner = (el.innerText || '').trim();
-            const text = inner || (el.textContent || '').trim();
-            
-            const attrs = {};
-            const commonAttrs = ['href', 'src', 'alt', 'class', 'id', 'title'];
-            commonAttrs.forEach(attr => {
-              const val = el.getAttribute(attr);
-              if (val !== null) attrs[attr] = val;
-            });
-            
-            Array.from(el.attributes).forEach(attr => {
-              if (attr.name.startsWith('data-')) {
-                attrs[attr.name] = attr.value;
-              }
-            });
-
-            return {
-              text: text || null,
-              attributes: Object.keys(attrs).length > 0 ? attrs : null,
-            };
+        try {
+          // Tenta aguardar o seletor aparecer
+          await page.waitForSelector(sel, { timeout: Math.min(timeout, 5000) }).catch(() => {
+            // Se não encontrar em 5s, continua mesmo assim (pode estar vazio ou carregar depois)
+            console.warn(`[WebUnlock] Seletor "${sel}" não encontrado após timeout, tentando mesmo assim...`);
           });
+        } catch (e) {
+          // Ignora erros de waitForSelector
+        }
+
+        const data = await page.evaluate((sel) => {
+          try {
+            const elements = document.querySelectorAll(sel);
+            
+            if (elements.length === 0) {
+              return [];
+            }
+
+            return Array.from(elements).map((el) => {
+              // Tenta múltiplas formas de extrair texto
+              let text = '';
+              
+              // Primeiro tenta innerText (mais confiável para texto visível)
+              if (el.innerText) {
+                text = el.innerText.trim();
+              }
+              
+              // Se vazio, tenta textContent
+              if (!text && el.textContent) {
+                text = el.textContent.trim();
+              }
+              
+              // Se ainda vazio, tenta value (para inputs)
+              if (!text && el.value) {
+                text = el.value.trim();
+              }
+              
+              // Remove espaços múltiplos e quebras de linha excessivas
+              text = text.replace(/\s+/g, ' ').trim();
+              
+              const attrs = {};
+              const commonAttrs = ['href', 'src', 'alt', 'class', 'id', 'title'];
+              commonAttrs.forEach(attr => {
+                const val = el.getAttribute(attr);
+                if (val !== null && val !== '') attrs[attr] = val;
+              });
+              
+              Array.from(el.attributes).forEach(attr => {
+                if (attr.name.startsWith('data-')) {
+                  attrs[attr.name] = attr.value;
+                }
+              });
+
+              return {
+                text: text || null,
+                attributes: Object.keys(attrs).length > 0 ? attrs : null,
+              };
+            });
+          } catch (error) {
+            return [];
+          }
         }, sel);
 
-        results[sel] = data;
+        results[sel] = Array.isArray(data) ? data : [];
+        
+        // Log para debug no servidor
+        const count = results[sel].length;
+        console.log(`[WebUnlock] Seletor "${sel}": ${count} elemento(s) encontrado(s)`);
+        
+        if (count === 0) {
+          // Verifica se o elemento existe na página (para debug)
+          const exists = await page.evaluate((sel) => {
+            return document.querySelector(sel) !== null;
+          }, sel);
+          
+          if (!exists) {
+            console.warn(`[WebUnlock] ⚠️ Seletor "${sel}" não existe na página. Verifique se o seletor está correto ou se a página carregou completamente.`);
+          } else {
+            console.warn(`[WebUnlock] ⚠️ Seletor "${sel}" existe mas não retornou dados (pode estar vazio ou oculto)`);
+          }
+        } else {
+          // Log do primeiro elemento encontrado para debug
+          const firstElement = results[sel][0];
+          if (firstElement && firstElement.text) {
+            console.log(`[WebUnlock] ✓ Primeiro elemento: "${firstElement.text.substring(0, 50)}${firstElement.text.length > 50 ? '...' : ''}"`);
+          }
+        }
       }
 
-      return results;
-    } catch (error) {
-      attempt++;
-      if (attempt > retries) {
-        console.error('[WebUnlock:scraper] Erro ao fazer scrape', {
-          url,
-          selector: selectors,
-          attempt,
-          message: error?.message,
-        });
-        return null;
-      }
-      // Aguarda um pouco antes de tentar novamente
-      await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
-    } finally {
+      // Fecha o browser antes de retornar (sucesso)
       if (browser) {
         try {
           await browser.close();
@@ -147,6 +189,35 @@ async function scrapeElements(url, selector, options = {}) {
           });
         }
       }
+
+      return results;
+    } catch (error) {
+      attempt++;
+      
+      // Fecha o browser em caso de erro antes de tentar novamente
+      if (browser) {
+        try {
+          await browser.close();
+          browser = null;
+        } catch (closeError) {
+          console.error('[WebUnlock:scraper] Erro ao fechar o browser', {
+            message: closeError?.message,
+          });
+        }
+      }
+      
+      if (attempt > retries) {
+        console.error('[WebUnlock:scraper] Erro ao fazer scrape', {
+          url,
+          selector: selectors,
+          attempt,
+          message: error?.message,
+        });
+        return null;
+      }
+      
+      // Aguarda um pouco antes de tentar novamente
+      await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
     }
   }
 
